@@ -1,51 +1,44 @@
-resource "aws_elb" "this" {
-  count = var.create_elb ? 1 : 0
+output "lb_id" {
+  description = "ID of the load balancer"
+  value       = aws_lb.this.id
+}
 
-  name        = var.name
-  name_prefix = var.name_prefix
+output "lb_arn" {
+  description = "ARN of the load balancer"
+  value       = aws_lb.this.arn
+}
 
-  subnets         = var.subnets
-  internal        = var.internal
-  security_groups = var.security_groups
+output "lb_dns_name" {
+  description = "DNS name of the load balancer"
+  value       = aws_lb.this.dns_name
+}
 
-  cross_zone_load_balancing   = var.cross_zone_load_balancing
-  idle_timeout                = var.idle_timeout
-  connection_draining         = var.connection_draining
-  connection_draining_timeout = var.connection_draining_timeout
+output "lb_zone_id" {
+  description = "Canonical hosted zone ID of the load balancer (for Route53 alias records)"
+  value       = aws_lb.this.zone_id
+}
 
-  dynamic "listener" {
-    for_each = var.listener
-    content {
-      instance_port      = listener.value.instance_port
-      instance_protocol  = listener.value.instance_protocol
-      lb_port            = listener.value.lb_port
-      lb_protocol        = listener.value.lb_protocol
-      ssl_certificate_id = lookup(listener.value, "ssl_certificate_id", null)
-    }
-  }
+output "target_group_arn" {
+  description = "ARN of the target group — attach EC2 instances / an ASG / ECS service to this"
+  value       = aws_lb_target_group.this.arn
+}
 
-  dynamic "access_logs" {
-    for_each = length(keys(var.access_logs)) == 0 ? [] : [var.access_logs]
-    content {
-      bucket        = access_logs.value.bucket
-      bucket_prefix = lookup(access_logs.value, "bucket_prefix", null)
-      interval      = lookup(access_logs.value, "interval", null)
-      enabled       = lookup(access_logs.value, "enabled", true)
-    }
-  }
+output "target_group_name" {
+  description = "Name of the target group"
+  value       = aws_lb_target_group.this.name
+}
 
-  health_check {
-    healthy_threshold   = lookup(var.health_check, "healthy_threshold")
-    unhealthy_threshold = lookup(var.health_check, "unhealthy_threshold")
-    target              = lookup(var.health_check, "target")
-    interval            = lookup(var.health_check, "interval")
-    timeout             = lookup(var.health_check, "timeout")
-  }
+output "security_group_id" {
+  description = "ID of the security group created for the load balancer (null if create_security_group = false or lb_type = network)"
+  value       = local.use_own_sg ? aws_security_group.this[0].id : null
+}
 
-  tags = merge(
-    var.tags,
-    {
-      "Name" = format("%s", var.name)
-    },
-  )
+output "http_listener_arn" {
+  description = "ARN of the HTTP listener"
+  value       = aws_lb_listener.http.arn
+}
+
+output "https_listener_arn" {
+  description = "ARN of the HTTPS listener, if created"
+  value       = local.is_alb && var.enable_https ? aws_lb_listener.https[0].arn : null
 }
