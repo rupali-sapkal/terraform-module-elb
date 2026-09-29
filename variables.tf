@@ -1,6 +1,10 @@
-variable "name" {}
+variable "name" {
+  type = string
+}
 
-variable "vpc_id" {}
+variable "vpc_id" {
+  type = string
+}
 
 variable "subnets" {
   type = list(string)
@@ -16,5 +20,6 @@ variable "instance_ids" {
 }
 
 variable "tags" {
-  type = map(string)
+  type    = map(string)
+  default = {}
 }
