@@ -2,8 +2,9 @@ resource "aws_lb" "alb" {
   name               = "${var.name}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = var.security_groups
-  subnets            = var.subnets
+
+  security_groups = var.security_groups
+  subnets         = var.subnets
 
   tags = var.tags
 }
@@ -15,6 +16,7 @@ resource "aws_lb_target_group" "tg" {
   vpc_id   = var.vpc_id
 
   health_check {
+    enabled             = true
     path                = "/login"
     port                = "traffic-port"
     protocol            = "HTTP"
@@ -24,6 +26,8 @@ resource "aws_lb_target_group" "tg" {
     healthy_threshold   = 2
     unhealthy_threshold = 3
   }
+
+  tags = var.tags
 }
 
 resource "aws_lb_listener" "listener" {
